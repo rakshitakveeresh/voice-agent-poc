@@ -23,6 +23,15 @@ separately. For voice features, configure an OpenAI API key.
 See the architecture diagram in
 [`Architecture/Voice_Agent_Architecture.drawio`](./Architecture/Voice_Agent_Architecture.drawio).
 It describes the proposed Azure/private-network deployment and request flow.
+Example customer prompts and expected specialist responses are collected in
+[`docs/voice-complaint-agent-examples.md`](./docs/voice-complaint-agent-examples.md).
+
+## Application frontend
+
+The screenshot below shows the Streamlit voice-agent frontend, including the
+voice mode, chat, language setting, and human overview navigation.
+
+![Voice Agent Streamlit frontend](./docs/images/voice-agent-frontend.png)
 
 ## Prerequisites
 
@@ -58,6 +67,12 @@ The live n8n workflow execution will be shown during the project demo. To run
 the prototype yourself, you need access to an active n8n instance with the
 appropriate workflow, credentials, and connected services configured. Set its
 webhook URL in `.env`.
+
+The image below is a static overview of the n8n workflow architecture. It does
+not show a live execution; the live workflow execution will be shown in the
+demo.
+
+![n8n workflow overview](./docs/images/n8n-workflow.png)
 
 The frontend sends a JSON `POST` to the webhook, which should return a
 non-empty response. The app displays plain-text responses or text from common
