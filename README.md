@@ -49,9 +49,15 @@ the Docker build context; never commit or share it.
 
 ### n8n setup
 
-Import the appropriate exported workflow JSON from [`n8n/`](./n8n/) into your
-n8n instance. Configure any required n8n credentials and connected services,
-activate the workflow, and set its webhook URL in `.env`.
+The n8n backend used by this project is hosted on a VPS and is not included in
+this repository. The exported workflow JSON files in [`n8n/`](./n8n/) are
+provided as architecture references to show how the workflow is organized;
+they do not provide access to the live instance or its execution history.
+
+The live n8n workflow execution will be shown during the project demo. To run
+the prototype yourself, you need access to an active n8n instance with the
+appropriate workflow, credentials, and connected services configured. Set its
+webhook URL in `.env`.
 
 The frontend sends a JSON `POST` containing `text`, `language`, `session_id`,
 and `bmw_id`. The webhook should return a non-empty response. The app displays
