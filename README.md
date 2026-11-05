@@ -1,4 +1,4 @@
-# BMW Complaint Chatbot
+# Voice Agent POC
 
 A Streamlit prototype for sending text or voice messages to an n8n customer-care
 webhook. Voice conversations use the OpenAI API for speech transcription and
@@ -39,7 +39,7 @@ it.
 ### 2. Build the image
 
 ```bash
-docker build --tag bmw-complaint-chatbot .
+docker build --tag voice-agent-poc .
 ```
 
 The Dockerfile pins the Python base image by digest and installs the exact
@@ -51,10 +51,10 @@ Docker platform. The lockfile records package versions, not package hashes.
 
 ```bash
 docker run --rm \
-  --name bmw-complaint-chatbot \
+  --name voice-agent-poc \
   --publish 8501:8501 \
   --env-file .env \
-  bmw-complaint-chatbot
+  voice-agent-poc
 ```
 
 Open [http://localhost:8501](http://localhost:8501). Keep the terminal open while
@@ -65,14 +65,14 @@ To run it in the background instead:
 
 ```bash
 docker run --detach \
-  --name bmw-complaint-chatbot \
+  --name voice-agent-poc \
   --publish 8501:8501 \
   --env-file .env \
-  bmw-complaint-chatbot
+  voice-agent-poc
 ```
 
-Then view logs with `docker logs --follow bmw-complaint-chatbot` and stop it
-with `docker stop bmw-complaint-chatbot`.
+Then view logs with `docker logs --follow voice-agent-poc` and stop it
+with `docker stop voice-agent-poc`.
 
 ### 4. Check that it is responding
 
@@ -100,7 +100,7 @@ Alternatively, the app can read top-level values from
 | `OPENAI_TTS_MODEL` | Optional | Text-to-speech model; defaults to `gpt-4o-mini-tts`. |
 | `DATABASE_URL` | Using Human Overview | Optional PostgreSQL connection URL. |
 
-BMW ID and language are entered in the app's sidebar. The language defaults to
+Vehicle ID and language are entered in the app's sidebar. The language defaults to
 `en`.
 
 ### n8n webhook contract
@@ -143,25 +143,31 @@ database details are missing.
 
 ## Run locally (without Docker)
 
-Use Python 3.11, then run these commands from the repository root:
+Use Python 3.11 and run the helper from the repository root:
+
+```bash
+./run.sh
+```
+
+On first run, `run.sh` creates a Python virtual environment, installs the pinned
+dependencies from `requirements.lock`, and copies `.env.example` to `.env` if
+you do not already have one. Edit `.env` with your webhook URL and credentials,
+then run `./run.sh` again. The script starts Streamlit at
+[http://localhost:8501](http://localhost:8501); press `Ctrl+C` to stop it.
+
+To set up or start the app manually instead:
 
 ```bash
 python3.11 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
 python -m pip install -r requirements.lock
 cp .env.example .env
-```
-
-Edit `.env` as described above, then start Streamlit:
-
-```bash
 streamlit run app.py
 ```
 
-Open [http://localhost:8501](http://localhost:8501). On Windows, create the
-environment with `py -3.11 -m venv .venv` and activate it with
-`.venv\Scripts\activate`; the remaining commands are the same.
+On Windows, create the environment with `py -3.11 -m venv .venv`, activate it
+with `.venv\Scripts\activate`, install `requirements.lock`, and run
+`streamlit run app.py`.
 
 ## Troubleshooting
 
