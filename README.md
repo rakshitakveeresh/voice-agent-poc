@@ -59,10 +59,10 @@ the prototype yourself, you need access to an active n8n instance with the
 appropriate workflow, credentials, and connected services configured. Set its
 webhook URL in `.env`.
 
-The frontend sends a JSON `POST` containing `text`, `language`, `session_id`,
-and `bmw_id`. The webhook should return a non-empty response. The app displays
-plain-text responses or text from common JSON fields such as `output`, `reply`,
-`response`, `message`, `answer`, or `text`.
+The frontend sends a JSON `POST` to the webhook, which should return a
+non-empty response. The app displays plain-text responses or text from common
+JSON fields such as `output`, `reply`, `response`, `message`, `answer`, or
+`text`.
 
 ## Run locally with Bash
 
