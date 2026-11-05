@@ -163,7 +163,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="t1" value="&lt;b style=&quot;font-size:22px;color:#1A1A1A&quot;&gt;Azure Deployment: Private, VNet-integrated Voice Complaint Agent&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:12px;color:#605E5C&quot;&gt;Only the Application Gateway is public. Apps, data and Azure PaaS services are reached over private networking.&lt;/span&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=11;fontColor=#323130;" parent="1" vertex="1">
+        <mxCell id="t1" value="&lt;b style=&quot;font-size:22px;color:#1A1A1A&quot;&gt;Azure Deployment: Private, VNet-integrated Voice Complaint Agent&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:12px;color:#605E5C&quot;&gt;Application Gateway uses a private frontend only. Apps, data and Azure PaaS services are reached over private networking; no public IPs or public endpoints. Users must connect through the private network.&lt;/span&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=11;fontColor=#323130;" parent="1" vertex="1">
           <mxGeometry x="30" y="8" width="1400" height="50" as="geometry" />
         </mxCell>
         <mxCell id="f-az" value="Azure  ·  Germany West Central  ·  Resource group rg-care-agent" style="rounded=1;arcSize=1.5;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#A19F9D;strokeWidth=1;dashed=1;dashPattern=6 4;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontSize=11;fontColor=#605E5C;" parent="1" vertex="1">
@@ -193,7 +193,7 @@
         <mxCell id="c-user" value="&lt;b style=&quot;font-size:12px&quot;&gt;Customer&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:10px;color:#605E5C&quot;&gt;Browser&lt;br&gt;mic + speaker&lt;/span&gt;" style="rounded=1;arcSize=7;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C8C6C4;strokeWidth=1;fontColor=#323130;align=left;verticalAlign=middle;spacingLeft=52;spacingRight=6;shadow=0;" parent="1" vertex="1">
           <mxGeometry x="20" y="240" width="130" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="c-agw" value="&lt;b style=&quot;font-size:12px&quot;&gt;Application Gateway&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:10px;color:#605E5C&quot;&gt;WAF v2 · TLS&lt;br&gt;Public IP&lt;/span&gt;" style="rounded=1;arcSize=7;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C8C6C4;strokeWidth=1;fontColor=#323130;align=left;verticalAlign=middle;spacingLeft=58;spacingRight=6;shadow=0;" parent="1" vertex="1">
+        <mxCell id="c-agw" value="&lt;b style=&quot;font-size:12px&quot;&gt;Application Gateway&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:10px;color:#605E5C&quot;&gt;WAF v2 · TLS&lt;br&gt;Private frontend IP&lt;/span&gt;" style="rounded=1;arcSize=7;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C8C6C4;strokeWidth=1;fontColor=#323130;align=left;verticalAlign=middle;spacingLeft=58;spacingRight=6;shadow=0;" parent="1" vertex="1">
           <mxGeometry x="224" y="240" width="170" height="80" as="geometry" />
         </mxCell>
         <mxCell id="i6" value="" style="shape=image;aspect=fixed;image=img/lib/azure2/networking/Application_Gateways.svg;imageAspect=1;" parent="1" vertex="1">

@@ -1,0 +1,236 @@
+{
+  "name": "Charging RAG Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        624,
+        224
+      ],
+      "id": "94aecac0-03f9-4915-932b-d14a2576607b",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "value": "vector_store_key",
+          "mode": "list",
+          "cachedResultName": "vector_store_key"
+        },
+        "clearStore": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        0
+      ],
+      "id": "bf50a11f-ca6a-4e04-a6d2-42fee272b260",
+      "name": "Insert Data to Store"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        0
+      ],
+      "id": "06f74a50-9896-4b2a-9f21-73c628ac4fb3",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "charging",
+        "filterType": "none"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        0
+      ],
+      "id": "d36bdde6-fbf9-4602-a618-f19119c3c3e1",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "UC6yHXu61io5LLSr",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  const row = item.json;\n  \n  // Skip row if essential info is missing\n  if (!row.error_code && !row.resolution) {\n    return null; \n  }\n\n  // Safely join troubleshooting steps if it's an array or string\n  let steps = '';\n  if (Array.isArray(row.troubleshooting_steps)) {\n    steps = row.troubleshooting_steps.join(', ');\n  } else if (typeof row.troubleshooting_steps === 'string') {\n    steps = row.troubleshooting_steps;\n  }\n\n  // Combine columns into a single flat text block per row\n  const combinedText = `Vehicle Model: ${row.vehicle_model || 'N/A'} | Charger Type: ${row.charger_type || 'N/A'} | Error Code: ${row.error_code || 'N/A'} | Issue Subtype: ${row.issue_subtype || 'N/A'} | Troubleshooting Steps: ${steps} | Root Cause: ${row.root_cause || 'N/A'} | Resolution: ${row.resolution || 'N/A'}`;\n\n  // Returns ONLY a single flat property containing the string\n  return {\n    json: {\n      text: combinedText\n    }\n  };\n}).filter(Boolean);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        0
+      ],
+      "id": "a31e8cfe-4b9c-4cc4-8a7f-8e640882dc7b",
+      "name": "FormatRows"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        256,
+        0
+      ],
+      "id": "24344e5f-3cc9-4628-a621-f1a3309fc31e",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "separator": "}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        704,
+        432
+      ],
+      "id": "ba9cf4a0-8660-4e7c-91e5-ad5ee5407761",
+      "name": "Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        304
+      ],
+      "id": "a0e08e23-8f32-4663-bca9-68b6475a30e7",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "JO3HjG5sIiF7Fre9",
+          "name": "OpenAi account poc"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "FormatRows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FormatRows": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Data to Store": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "989a4151-a098-4f2e-b5d8-5d834dea663c",
+  "meta": {
+    "templateId": "rag-starter-template",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f7c38dd1a82a908e9b3acb632bb7676339e09e3e873d3d9c0daeaca1769e601a"
+  },
+  "id": "4h31tPPcb1QrJVgA",
+  "tags": []
+}

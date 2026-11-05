@@ -1,0 +1,1201 @@
+{
+  "name": "Voice Complaint Agent v2 (Router + 4 Specialists)",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "23e329c9-0c7d-41e3-af3f-52c94030dc61",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "delivery_delay",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "delivery_delay"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "18cfc1c4-6fb7-4e02-8cc0-61207fa09619",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "charging_problem",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "charging_problem"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ac2aecec-c35e-4034-b64f-ab2b06af0fb6",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "connected_services",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "connected_services"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1b815aba-b7c1-404d-aa20-9dfd3cb359b9",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "warranty_dispute",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "warranty_dispute"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "cb84629d-3b8a-4e94-a3fa-7bb760600198",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "fallback",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "fallback"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c6de383c-b7ff-438c-a3d6-d854946228cd",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "general",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "general"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0be5d565-6d66-4a1a-8c5b-705d7bffd094",
+      "name": "Route by Intent",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -6288,
+        -496
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Customer message: {{ $('Webhook').item.json.text }}\nCustomer ID: {{ $('Webhook').item.json.bmw_id }}\nSession ID: {{ $('Pre-Guardrails1').item.json.session_id }}\nIntent: {{ $('Route by Intent').item.json.output.intent }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a BMW Customer Care voice agent specialized in Delivery and Vehicle Logistics tracking. Your response will be spoken aloud by text-to-speech.\n\nSTYLE RULES:\n- Reply in the customer's language (German or English).\n- Max 2-3 short sentences (under 60 words). No lists, no markdown, no emojis, no URLs.\n- Ask at most ONE question per turn.\n- Never invent facts. Only quote facts returned by tools.\n\nPLAYBOOK:\n1. Look for an Order Number in the message or provided context.\n2. If missing: Ask the customer to provide their Order Number or VIN. Set action = \"FOLLOW_UP\".\n3. If present: Call the `get_delivery_status` tool with the order number.\n   - If tool returns status details: State the status clearly. Set action = \"INFORM\".\n   - If status is delayed over 30 days, shows vehicle damage, or tool returns \"not found\": State that you are logging a ticket for logistics follow-up. Set action = \"CREATE_TICKET\".\n   -complaint_type should be Intent received as an input from route by Intent. Do not invent anything",
+          "maxIterations": 6
+        }
+      },
+      "id": "5b8bc5bb-e25f-4eb6-9714-0ba1608df0e0",
+      "name": "Delivery Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -5936,
+        -1552
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Customer says: {{ $('Webhook').item.json.body.text }}\nLanguage: {{ $('Webhook').item.json.body.language }}\nBMW ID: {{ $('Webhook').item.json.body.bmw_id }}\nSession ID: {{ $('Webhook').item.json.body.session_id }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a BMW Customer Care voice agent specialised in EV charging and high-voltage issues. Your response will be spoken aloud by text-to-speech.\n\nINTENT: charging_problem\n\nSTRICT RULES:\n- Only handle complaints that are clearly about EV charging or charging-related equipment.\n- Before giving a solution or a confident answer, check the charging knowledge base using the available RAG tool.\n- Do not invent facts.\n- Do not make technical claims without evidence from the RAG data.\n- Keep the reply short, empathetic, and natural.\n- Do not ask for passwords, PINs, or card details.\n\nONLY TWO ACTIONS ALLOWED:\n- CREATE_TICKET\n- ESCALATE\n\nDECISION LOGIC:\n1. If the customer message is clear, specific, and supported by RAG:\n   - acknowledge the issue\n   - create a ticket\n   - action = CREATE_TICKET\n   - confidence can be moderate, but not high unless the issue is very specific and clearly supported\n   - do not claim a root cause unless the RAG result explicitly supports it\n\n2. If the message is vague, broad, contradictory, emotional, or unsupported:\n   - do not guess\n   - do not give a technical explanation\n   - action = CREATE_TICKET\n   - confidence < 0.50\n   - reply: “I’ve noted your issue and a human specialist has been notified to review it and get back to you.”\n\n3. If there is any safety risk, smoke, burning smell, fire, urgent electrical danger, or immediate hazard:\n   - action = ESCALATE\n   - confidence < 0.50\n   - reply: “A human specialist has been notified immediately for urgent review.”\n\nSENTIMENT RULE:\n- If the customer sounds frustrated, angry, upset, or unclear, confidence should be reduced.\n- Emotional or vague language should not lead to a confident answer.\n\nSTYLE RULES:\n- Reply in the customer’s language (German or English).\n- 2-3 short sentences, under 60 words.\n- No lists, no markdown, no emojis, no URLs.\n\nOUTPUT FORMAT:\nReturn JSON with:\n- reply\n- action\n- confidence\n- complaint_type\n- escalation_reason\n\nUse:\n- complaint_type = \"charging_problem\"\n- action = \"CREATE_TICKET\" for unclear, unsupported, or broad charging issues\n- action = \"ESCALATE\" for safety risks or urgent cases\n- confidence must be below 0.50 for CREATE_TICKET and ESCALATE cases\n\nCRITICAL:\nOnly use CREATE_TICKET or ESCALATE.\nIf confidence is low or the issue is unclear, the customer must be routed to human review.",
+          "maxIterations": 6
+        }
+      },
+      "id": "11980ca0-84c1-4d84-9e94-7e3a4ac9f986",
+      "name": "Charging Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -5936,
+        -1152
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Customer says: {{ $json.text }}\nLanguage: {{ $json.language }}\nBMW ID: {{ $json.bmw_id }}\nSession ID: {{ $json.session_id }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a BMW Customer Care voice agent specialised in EV charging and high-voltage issues. Your response will be spoken aloud by text-to-speech.\n\nINTENT: charging_problem\n\nROLE:\n- Handle the first contact for charging-related customer complaints.\n- If the issue is clearly about charging, wallbox, charging cable, connector, charging speed, battery charging, or EV power issues, respond directly.\n- If the complaint is unclear, low-confidence, or unsafe to handle automatically, acknowledge it and escalate to a human specialist with context.\n\nSTYLE RULES:\n- Reply in the customer's language (German or English).\n- Keep it to 2-3 short sentences, under 60 words.\n- No lists, no markdown, no emojis, no URLs.\n- Be empathetic and calm.\n- Do not invent facts or guarantee a fix.\n- Do not ask for passwords, PINs, or card details.\n\nDECISION RULES:\n1. If the issue is clearly about charging:\n   - Acknowledge the problem.\n   - Use historical troubleshooting examples only if they are relevant and safe.\n   - If the issue looks resolvable: provide a clear next step or recommended check.\n   - Set action = \"INFORM\" or \"CREATE_TICKET\" depending on whether the issue is resolved or needs escalation.\n   - Keep the reply practical and brief.\n\n2. If the issue is vague, unclear, or low confidence:\n   - Do not guess.\n   - Say that the complaint has been noted and a human specialist will review it.\n   - Set action = \"CREATE_TICKET\".\n   - Mention that the specialist will get back to them.\n\n3. If there is any indication of danger, smoke, burning smell, fire, serious electrical risk, or immediate safety concern:\n   - Stop autonomous handling.\n   - Set action = \"ESCALATE\".\n   - Tell the customer that a human specialist will review the issue urgently.\n\n4. If the customer is frustrated:\n   - Acknowledge the frustration briefly and remain empathetic.\n\nOUTPUT FORMAT:\nReturn a structured result with:\n- reply\n- action\n- confidence\n- complaint_type\n- escalation_reason\n\nUse:\n- complaint_type = \"charging_problem\"\n- action = \"INFORM\" for a normal handled charging issue\n- action = \"CREATE_TICKET\" for low-confidence or unclear issue\n- action = \"ESCALATE\" for safety risk or immediate escalation\n\nIf you are unsure, do NOT answer as if you know. Escalate and tell the customer a human specialist will review it.",
+          "maxIterations": 6
+        }
+      },
+      "id": "19dc2ad2-9d94-4753-b6b0-3b0fa2a51786",
+      "name": "Connected Services Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -5936,
+        -544
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Customer says: {{$('Webhook').item.json.text }}\nIntent: {{ $('Route by Intent').item.json.output.intent }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a BMW Customer Care voice agent specialised in Warranty and Service disputes. Your response will be spoken aloud by text-to-speech.\n\nINTENT: warranty_dispute\n\nSTYLE RULES:\n- Reply in the customer's language (German or English).\n- Max 2-3 short sentences (under 60 words). No lists, no markdown, no emojis, no URLs.\n- Always be empathetic, warm, and supportive regarding the customer's frustration.\n- Never promise free repairs, goodwill, or immediate refunds.\n\nPLAYBOOK:\n1. Express genuine empathy for the concern or dispute they are experiencing regarding their vehicle's warranty.\n2. Clearly state that you have registered their complaint in the system.\n3. Assure them that a specialist from our warranty team will reach out to them directly to review the case.\n4. Set action = \"CREATE_TICKET\".",
+          "maxIterations": 6
+        }
+      },
+      "id": "04b797da-e31e-4a7c-bca9-c1b81da6edb2",
+      "name": "Warranty Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -5936,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7c6bc985-784e-4b23-a5d8-85c20f0a5dd9",
+              "leftValue": "={{ $('Merge').item.json.output.confidence }}",
+              "rightValue": 0.6,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "48e0627d-a7f8-41cb-b3fe-fb4561c03d64",
+      "name": "Confident?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -4992,
+        -688
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "voice-agent@example.com",
+        "toEmail": "customer-care-escalations@example.com",
+        "subject": "={{ $('Build Handover').first().json.emailSubject }}",
+        "emailFormat": "text",
+        "text": "={{ $('Build Handover').first().json.emailBody }}",
+        "options": {}
+      },
+      "id": "63f2e57f-1265-49d9-8c68-d3176d2e7942",
+      "name": "Email Human Agent",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -4768,
+        -16
+      ],
+      "webhookId": "c1324472-2336-458a-88e7-3c4dc56ba3a0",
+      "credentials": {
+        "smtp": {
+          "id": "q3H9aZvcRmaRI7Rk",
+          "name": "SMTP account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('Webhook').first().json;\nconst body = item.body || item;\nconst sessionId = String(body.session_id || ('anon-' + Date.now()));\nconst raw = String(body.text || '').trim().slice(0, 2000);\nconst language = String(body.language || 'en').toLowerCase();\n\n// Redact PII\nconst text = raw\n  .replace(/[\\w.+-]+@[\\w-]+\\.[\\w.-]+/g, '[EMAIL]')\n  .replace(/\\b(?:\\d[ -]?){13,19}\\b/g, '[CARD]')\n  .replace(/(?:\\+|00)\\d[\\d\\s().\\/-]{7,}\\d/g, '[PHONE]');\n\n// Safety & Legal Guardrails\nconst SAFETY = /\\b(fire|smoke|burning smell|crash|accident|brakes? fail)\\b/i;\nconst LEGAL = /\\b(lawyer|attorney|sue|lawsuit|lemon law)\\b/i;\nconst HUMAN = /(speak|talk)\\b.{0,25}\\b(human|agent|person)\\b/i;\nconst FRUSTRATION = /\\b(useless|terrible|horrible|angry|worst)\\b|!{2,}/i;\n\nlet hardEscalate = false, escalationCategory = '', escalationReason = '';\nlet sentiment = 'neutral';\n\nif (SAFETY.test(text)) {\n  hardEscalate = true; escalationCategory = 'safety'; escalationReason = 'Safety critical'; sentiment = 'very_negative';\n} else if (LEGAL.test(text)) {\n  hardEscalate = true; escalationCategory = 'legal'; escalationReason = 'Legal threat'; sentiment = 'negative';\n} else if (HUMAN.test(text)) {\n  hardEscalate = true; escalationCategory = 'customer_request'; escalationReason = 'Human requested';\n} else if (FRUSTRATION.test(text)) {\n  sentiment = 'very_negative'; escalationCategory = 'frustration'; escalationReason = 'High frustration';\n}\n\n// Session Tracking\nconst sd = $getWorkflowStaticData('global');\nsd.sessions = sd.sessions || {};\nconst s = sd.sessions[sessionId] = sd.sessions[sessionId] || { turns: 0, transcript: [], started: new Date().toISOString() };\ns.turns += 1;\ns.transcript.push({ role: 'customer', text, ts: new Date().toISOString() });\n\nreturn [{ json: { session_id: sessionId, text, language, turn: s.turns, sentiment, hardEscalate, escalationCategory, escalationReason } }];"
+      },
+      "id": "23f58ab3-c184-4760-9e27-6135b02b8536",
+      "name": "Pre-Guardrails1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6864,
+        -448
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Customer says: {{ $json.text }}\nLanguage: {{ $json.language }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are the first-contact BMW Customer Care routing agent. Your job is to classify the customer's current intent and decide whether to continue the previous issue or route to a new specialist flow.\n\nIMPORTANT CONTEXT RULES:\n- Always consider previous conversation context from the same session.\n- If the customer is continuing a previous issue, keep the same intent unless they clearly describe a different problem.\n- Follow-up phrases like \"still happening\", \"same issue\", \"again\", \"not fixed\", \"earlier\", \"still not working\", \"it keeps happening\", \"I already reported this\" must be treated as continuation of the previous case, not a new complaint.\n- Do not ask generic open questions like \"How can I help you today?\" when the user is already in the middle of an ongoing issue.\n- If the previous intent was charging_problem and the new message is vague but clearly related to the same charging problem, keep charging_problem.\n- If the user is frustrated, angry, upset, or emotional, treat the case as low-confidence and route it to human review rather than forcing a confident category.\n\nINTENTS:\n- charging_problem: EV charging, wallbox, home charger, public charging, charging cable, connector, charging speed, power issue, battery charging, EV not charging.\n- delivery_delay: delivery, vehicle shipping, order status, handover, delay or transit issues.\n- connected_services: BMW app, connected services, digital key, navigation, infotainment, remote features.\n- warranty_dispute: warranty concerns, repair disputes, service claims, coverage issues.\n- general: greetings, small talk, thanks, general BMW questions, short general conversation, \"hi\", \"hello\", \"thanks\", \"good morning\", and polite conversational messages.\n- fallback: irrelevant complaints, unsupported issues, vague emotional complaints, or cases not clearly tied to the current complaint and not clearly in the supported domains.\n\nDECISION RULES:\n1. If there is previous session context and the current message is a follow-up to the same problem, preserve the previous intent.\n2. If the current message clearly mentions charging, wallbox, EV charging, cable, charger, or battery charge issue, classify as charging_problem.\n3. If the current message is a greeting or normal small talk, classify as general.\n4. If the current message is vague, emotional, frustrated, or not clearly tied to a supported domain, do not guess a specialist intent. Use fallback.\n5. If the user is clearly unhappy or frustrated, lower confidence and route to human review.\n6. If the current message is clearly unrelated to the previous issue, then classify a new intent only if it matches one of the supported domains.\n7. If the customer requests a human or mentions an urgent safety concern (fire, smoke, burning smell, crash, brake failure), set action = ESCALATE.\n8. When unsure, prefer continuing the prior issue and escalating to human review rather than guessing a new category.\n\nCONFIDENCE:\n- Clear charging complaint with specific charging details: 0.80-1.00\n- Clear follow-up continuing a previous charging complaint: 0.75-0.95\n- Clear delivery, connected services, or warranty complaint: 0.75-0.95\n- Vague or unclear follow-up: below 0.60\n- Frustrated or emotional complaint: below 0.50\n- Greeting or small talk: 0.90\n- General conversation: 0.85-0.95\n- Fallback / unsupported / irrelevant complaint: below 0.50\n\nOUTPUT:\nReturn ONLY a JSON object with exactly these six fields, all always present:\n- intent: one of charging_problem, delivery_delay, connected_services, warranty_dispute, general, fallback\n- action: one of ROUTE, RESPOND, ESCALATE\n- confidence: number between 0 and 1\n- reply: string (see field rules below)\n- escalation_reason: string, \"\" unless action = ESCALATE or the case needs human review\n- complaint_summary: string, 1-2 short factual sentences describing the customer's issue, written in English\n\nFIELD RULES:\n- Clear supported-domain issue (charging_problem, delivery_delay, connected_services, warranty_dispute): action = ROUTE, reply = \"\", escalation_reason = \"\".\n- general (greeting, thanks, small talk): action = RESPOND, reply = short, friendly, non-generic answer (REQUIRED), escalation_reason = \"\". Example: \"Hello! I can help with charging, delivery, connected services, or warranty topics.\"\n- fallback (vague, emotional, unsupported, irrelevant): reply = brief, empathetic, non-generic text (REQUIRED). Use action = RESPOND. If the customer is upset or the issue is vague, use action = ESCALATE and fill escalation_reason. Example reply: \"I've noted your issue and a human specialist will review it and get back to you.\"\n- Customer asks for a human or mentions a safety risk: action = ESCALATE, intent = the most relevant intent (or fallback if unclear), reply = \"A human specialist will review your case urgently.\", escalation_reason = short cause such as \"safety risk\" or \"human requested\".\n- If the issue is still the same unresolved problem, do not restart the conversation with a generic opener.\n- Never leave reply empty when action is RESPOND or ESCALATE. Never fill reply when action is ROUTE.\n- Use only the exact intent and action values listed above. No other labels, no extra fields, no markdown, no text outside the JSON.\n\nIMPORTANT:\nNever restart the case with a generic \"How can I help you today?\" when the customer is continuing an existing complaint.",
+          "maxIterations": 6
+        }
+      },
+      "id": "18b96bb2-1fa8-4fd4-95de-ca841248679b",
+      "name": "Router Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -6640,
+        -448
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={ \"output\": {{ JSON.stringify($('Router Agent').item.json.output.reply) }} }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5296,
+        176
+      ],
+      "id": "1923f883-db22-4e1e-856b-667357e75db0",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"intent\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"charging_problem\",\n        \"delivery_delay\",\n        \"connected_services\",\n        \"warranty_dispute\",\n        \"general\",\n        \"fallback\"\n      ]\n    },\n    \"action\": {\n      \"type\": \"string\",\n      \"enum\": [\"ROUTE\", \"RESPOND\", \"ESCALATE\"]\n    },\n    \"confidence\": {\n      \"type\": \"number\",\n      \"minimum\": 0,\n      \"maximum\": 1\n    },\n    \"reply\": {\n      \"type\": \"string\"\n    },\n    \"escalation_reason\": {\n      \"type\": \"string\"\n    },\n    \"complaint_summary\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"intent\",\n    \"action\",\n    \"confidence\",\n    \"reply\",\n    \"escalation_reason\",\n    \"complaint_summary\"\n  ],\n  \"additionalProperties\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -6512,
+        -224
+      ],
+      "id": "4c9b61af-4a4b-4885-8131-843c8c3e598c",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body.session_id }}",
+        "contextWindowLength": 1000
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -6336,
+        272
+      ],
+      "id": "f8f6c2f6-da73-4836-8c8d-fd139114c0fd",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "\"Retrieves real-time vehicle production status, shipping location, and estimated delivery date using the customer's BMW ID and their order number or VIN.\"",
+        "operation": "getAll",
+        "tableId": "delivery_orders",
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "customer_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook').item.json.bmw_id }}"
+            },
+            {
+              "keyName": "order_id",
+              "condition": "eq",
+              "keyValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conditions1_Field_Value', ``, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        -5792,
+        -1328
+      ],
+      "id": "2989671d-0a44-45a9-b70b-c3abac315706",
+      "name": "get_delivery_status",
+      "credentials": {
+        "supabaseApi": {
+          "id": "UC6yHXu61io5LLSr",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"reply\": \"I checked your order #265484. It is currently in transit and scheduled for delivery on November 10th. Would you like me to open a support ticket regarding the delay?\",\n  \"confidence\": 0.95,\n  \"complaint_type\": \"DELIVERY\",\n  \"action\": \"CREATE_TICKET\",\n  \"complaint_summary\": \"<1-2 empathetic and factual sentences summarizing the dispute>\"\n  \n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -5664,
+        -1328
+      ],
+      "id": "84911055-55d5-415b-a2cf-403ae14d4c36",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -5440,
+        -720
+      ],
+      "id": "3d8ede65-4cee-4fe5-9085-7c5cff6a6017",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"output\": \"{{ $json.output.reply }}\"\n  \"complaint\": \"{{ $json.output.complaint_summary }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5216,
+        -688
+      ],
+      "id": "4f8085f8-0dba-4673-b7e0-e7a89f0aa023",
+      "name": "Set Webhook Data"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"reply\": \"I checked your order #265484. It is currently in transit and scheduled for delivery on November 10th. Would you like me to open a support ticket regarding the delay?\",\n  \"confidence\": 0.95,\n  \"complaint_type\": \"charging_problem\",\n  \"action\": \"CREATE_TICKET\",\n  \"complaint_summary\": \"<1-2 empathetic and factual sentences summarizing the dispute>\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -5648,
+        -928
+      ],
+      "id": "63272ee0-66e8-4e49-985c-e28ba3b9a61b",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "relevend data",
+        "memoryKey": {
+          "__rl": true,
+          "value": "vector_store_key",
+          "mode": "list",
+          "cachedResultName": "vector_store_key"
+        },
+        "includeDocumentMetadata": false
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        -5936,
+        -928
+      ],
+      "id": "b359bc31-6263-42c0-a625-c7efbf5b2c29",
+      "name": "Simple Vector Store"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"intent\": \"connected_services\",\n  \"reply\": \"I'm really sorry to hear you're experiencing trouble with your connected services. I have registered your complaint, and one of our specialists will reach out to you shortly to get this resolved.\",\n  \"action\": \"CREATE_TICKET\",\n  \"confidence\": 0.95,\n  \"case_summary\": \"<1-2 empathetic and factual sentences summarizing the issue>\",\n  \"complaint_summary\": \"<1-2 empathetic and factual sentences summarizing the dispute>\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -5792,
+        -320
+      ],
+      "id": "eba21d04-e13b-43a9-809e-56b5883ec7d4",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"intent\": \"warranty_dispute\",\n  \"reply\": \"I completely understand your concern regarding your warranty coverage. I have registered your complaint, and one of our warranty specialists will reach out to you directly to review your case.\",\n  \"action\": \"CREATE_TICKET\",\n  \"confidence\": 0.95,\n  \"case_summary\": \"<1-2 empathetic and factual sentences summarizing the dispute>\",\n  \"complaint_summary\": \"<1-2 empathetic and factual sentences summarizing the dispute>\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -5792,
+        192
+      ],
+      "id": "80529a46-e41c-451e-b0e4-ff4d4300be1f",
+      "name": "Structured Output Parser4"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { output: $('Set Webhook Data').isExecuted ? $('Set Webhook Data').item.json.output : $('Edit Fields').item.json.output } }}",
+        "options": {}
+      },
+      "id": "c261d4a8-5f1c-46f0-b174-38cb256e5a2c",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -4544,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "customer-care-poc",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "813d8b90-624e-4f57-9ed9-6bfcc87dde9f",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -7088,
+        -448
+      ],
+      "webhookId": "c567819d-5bc8-4816-a04a-2665f6ca49cf",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "XBsPwFBeyDRFy20U",
+          "name": "Webhook Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "customers",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "=customer_id",
+              "fieldValue": "={{ $('Webhook').item.json.body.session_id }}"
+            },
+            {
+              "fieldId": "customer_complaint",
+              "fieldValue": "={{ $('Set Webhook Data').item.json.complaint }}"
+            },
+            {
+              "fieldId": "name",
+              "fieldValue": "test"
+            },
+            {
+              "fieldId": "agent_response",
+              "fieldValue": "={{ $('Set Webhook Data').item.json.output }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -4992,
+        -240
+      ],
+      "id": "895e0c6e-8440-4ae1-8d7f-d03448d4797d",
+      "name": "Update Table",
+      "alwaysOutputData": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "UC6yHXu61io5LLSr",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -6784,
+        -240
+      ],
+      "id": "91f105b2-d62c-4eff-9b35-4f37f54ac7d0",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "JO3HjG5sIiF7Fre9",
+          "name": "OpenAi account poc"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -6000,
+        -1264
+      ],
+      "id": "ca81d4ef-0d3f-4c53-9e47-c421a6211ac6",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "JO3HjG5sIiF7Fre9",
+          "name": "OpenAi account poc"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -6320,
+        -784
+      ],
+      "id": "026eff2e-c6e7-4fd3-b214-7076b9e66d94",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "JO3HjG5sIiF7Fre9",
+          "name": "OpenAi account poc"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -6000,
+        -240
+      ],
+      "id": "990d8273-6442-4898-98c2-44ba2447ee29",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "JO3HjG5sIiF7Fre9",
+          "name": "OpenAi account poc"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -5968,
+        224
+      ],
+      "id": "f3dd76e3-e66a-4f79-bc04-a9853859ef51",
+      "name": "OpenAI Chat Model4",
+      "credentials": {
+        "openAiApi": {
+          "id": "JO3HjG5sIiF7Fre9",
+          "name": "OpenAi account poc"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -5856,
+        -720
+      ],
+      "id": "dc733b9b-62d6-4d2f-b5a3-0cd82905830d",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "JO3HjG5sIiF7Fre9",
+          "name": "OpenAi account poc"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "customers",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "=customer_id",
+              "fieldValue": "={{ $('Webhook').item.json.body.session_id }}"
+            },
+            {
+              "fieldId": "customer_complaint",
+              "fieldValue": "={{ $('Router Agent').item.json.output.complaint_summary }}"
+            },
+            {
+              "fieldId": "name",
+              "fieldValue": "test"
+            },
+            {
+              "fieldId": "agent_response",
+              "fieldValue": "={{ $json.output }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -4992,
+        272
+      ],
+      "id": "74af5f92-d217-4a23-8663-a27ae1f7026d",
+      "name": "Update Table1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "UC6yHXu61io5LLSr",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={ \"output\": {{ JSON.stringify($('Router Agent').item.json.output.reply) }} }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5440,
+        352
+      ],
+      "id": "e5246b71-e786-4d83-b8d4-0b64563239d0",
+      "name": "Edit Fields1"
+    }
+  ],
+  "connections": {
+    "Delivery Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Charging Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Connected Services Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Warranty Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Route by Intent": {
+      "main": [
+        [
+          {
+            "node": "Delivery Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Charging Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Connected Services Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Warranty Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confident?": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Human Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pre-Guardrails1": {
+      "main": [
+        [
+          {
+            "node": "Router Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router Agent": {
+      "main": [
+        [
+          {
+            "node": "Route by Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Update Table1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Router Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Router Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Charging Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Warranty Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Connected Services Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Delivery Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_delivery_status": {
+      "ai_tool": [
+        [
+          {
+            "node": "Delivery Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Delivery Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Set Webhook Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Webhook Data": {
+      "main": [
+        [
+          {
+            "node": "Confident?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Charging Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "Charging Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Connected Services Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser4": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Warranty Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Pre-Guardrails1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Table": {
+      "main": [
+        [
+          {
+            "node": "Email Human Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Router Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Delivery Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Charging Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Connected Services Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Warranty Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Table1": {
+      "main": [
+        [
+          {
+            "node": "Email Human Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "1947be55-f44d-41a9-b9a9-9ec74e1c086e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f7c38dd1a82a908e9b3acb632bb7676339e09e3e873d3d9c0daeaca1769e601a"
+  },
+  "id": "DU2wY_BhrdWn2cp6ouO7h",
+  "tags": []
+}
